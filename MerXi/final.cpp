@@ -1,125 +1,12 @@
-ï»¿#include <iostream>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 
 using namespace std;
-//part1
-bool isGoal(int nodeState[], int totalPancakes) {
-    int min = nodeState[0];
-    int max = nodeState[0];
-    int i;
 
-    for (i = 0; i < totalPancakes; i++) { //æ‰¾å‡ºæœ€å°å’Œæœ€å¤§å€¼
-        if (nodeState[i] < min) {
-            min = nodeState[i];
-        }
-
-        if (nodeState[i] > max) {
-            max = nodeState[i];
-        }
-    }
-
-    for (i = 0; i < totalPancakes; i++) { //é–‹å§‹åˆ¤æ–· ä»¤é™£åˆ—ä¸­ç‚ºé€£çºŒæ•´æ•¸
-        if (i == 0 && nodeState[i] != min) {
-            printf("NO\n");
-            return false;
-        } else if (i > 0 && i < totalPancakes - 1) {
-            if (nodeState[i] < nodeState[i - 1]) {
-                printf("NO\n");
-                return false;
-            }
-        } else if (i == totalPancakes - 1) {
-            if (nodeState[i] == max) {
-                printf("YES\n");
-                return true;
-            }
-        }
-    }
-};
-//part2
-int gapNumber(int nodeState[], int totalPancakes) {
-    int count = 0;
-    int i, j;
-
-    for (i = 0; i < totalPancakes - 1; ++i) {
-        j = nodeState[i] - nodeState[i + 1];
-
-        if (j > 1 || j < -1) {
-            count++;
-        }
-    }
-
-    return count;
-}
-//part3
-typedef struct Node {
-    short int state[16];
-    int g;
-    int h;
-    int f;
-    int action;
-    Node *prevNode;
-} Node;
-
-Node* makeSuccessor(Node *current, int action, int totalPancakes) {
-    Node *returnNode = (Node*) malloc(sizeof(Node));
-
-    // ç¿»è½‰çš„éƒ¨åˆ†ï¼ŒCurrentçš„å¾Œé¢è¦æ”¾åˆ°Returnçš„å‰é¢
-    for (int i = 0; i < action; i++)
-        returnNode->state[i] = current->state[action - i - 1];
-
-    // æ²’æœ‰ç¿»è½‰çš„éƒ¨åˆ†ç…§åŸä½
-    for (int i = action; i < totalPancakes; i++)
-        returnNode->state[i] = current->state[i];
-
-    returnNode->g = current->g + 1;
-
-    // é‚„æ²’æœ‰å–å¾—gapNumber()ï¼Œå…ˆé è¨­1
-    returnNode->h = 1;
-
-    // f = g + h
-    returnNode->f = returnNode->g + returnNode->h;
-    returnNode->action = action;
-    returnNode->prevNode = current;
-
-    return returnNode;
-}
-
-void makeSuccessor_test() {
-    int N;
-    scanf("%d", &N);
-
-    for (int i = 0; i < N; i++) {
-        int n;
-        Node *head = (Node*) malloc(sizeof(Node));
-        // Input Data
-        scanf("%d", &n);
-        for (int j = 0; j < n; j++)
-            scanf("%d", &head->state[j]);
-        scanf("%d", &head->g);
-        scanf("%d", &head->action);
-        head->h = 1;
-        head->prevNode = NULL;
-        head->f = head->g + head->h;
-
-        // Actionå¾2é–‹å§‹åˆ°total
-        for (int j = 2; j <= n; j++) {
-            // è·Ÿä¸Šä¸€æ­¥çš„Actionä¸€æ¨£è¦è·³é
-            if (head->action == j) continue;
-            Node *result = makeSuccessor(head, j, n);
-
-            // Print State
-            printf("[%d", result->state[0]);
-            for (int k = 1; k < n; k++)
-                printf(" %d", result->state[k]);
-            printf("], %d, %d, %d, %d\n", result->g, result->h, result->f, result->action);
-        }
-    }
-    printf("makeSuccessor_test done.\n");
-}
-//part4 //#include "sequence.h"
 class Sequence {
 public:
+    int *number;
     Sequence() : gScore(0), hScore(0), fScore(0) {
         number = new int[16];
         this->leftNode = NULL;
@@ -141,6 +28,9 @@ public:
     }
     void w_number(int i, int number) {
         this->number[i] = number;
+    }
+    void w_action(int a) {
+        this->action = a;
     }
     Sequence* getLeftNode() {
         return this->leftNode;
@@ -172,14 +62,85 @@ public:
     int useNumber(int i) {
         return this->number[i];
     }
+
+    int getAction() {
+        return action;
+    }
 private:
-    int *number;
     int gScore;
     int hScore;
     int fScore;
+    int action;
     Sequence *leftNode;
     Sequence *rightNode;
 };
+
+bool isGoal(int nodeState[], int totalPancakes) {
+    int min = nodeState[0];
+    int max = nodeState[0];
+    int i;
+
+    for (i = 0; i < totalPancakes; i++) { //§ä¥X³Ì¤p©M³Ì¤j­È
+        if (nodeState[i] < min) {
+            min = nodeState[i];
+        }
+
+        if (nodeState[i] > max) {
+            max = nodeState[i];
+        }
+    }
+
+    for (i = 0; i < totalPancakes; i++) { //¶}©l§PÂ_ ¥O°}¦C¤¤¬°³sÄò¾ã¼Æ
+        if (i == 0 && nodeState[i] != min) {
+            // printf("NO\n");
+            return false;
+        } else if (i > 0 && i < totalPancakes - 1) {
+            if (nodeState[i] < nodeState[i - 1]) {
+                // printf("NO\n");
+                return false;
+            }
+        } else if (i == totalPancakes - 1) {
+            if (nodeState[i] == max) {
+                // printf("YES\n");
+                return true;
+            }
+        }
+    }
+};
+
+int gapNumber(int nodeState[], int totalPancakes) {
+    int count = 0;
+    int i, j;
+
+    for (i = 0; i < totalPancakes - 1; ++i) {
+        j = nodeState[i] - nodeState[i + 1];
+
+        if (j > 1 || j < -1) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+Sequence* makeSuccessor(Sequence *current, int action, int totalPancakes) {
+    Sequence *returnNode = new Sequence();
+
+    // Â½Âàªº³¡¤À¡ACurrentªº«á­±­n©ñ¨ìReturnªº«e­±
+    for (int i = 0; i < action; i++)
+        returnNode->w_number(i, current->useNumber(action - i - 1));
+
+    // ¨S¦³Â½Âàªº³¡¤À·Ó­ì¦ì
+    for (int i = action; i < totalPancakes; i++)
+        returnNode->w_number(i, current->useNumber(i));
+
+    returnNode->w_gScore(current->getgScore() + 1);
+    returnNode->w_hScore(gapNumber(returnNode->number, totalPancakes));
+
+    // f = g + h
+    returnNode->w_fScore();
+    returnNode->w_action(action);
+}
 
 void printTree(Sequence *head) {
     if (head != NULL) {
@@ -271,21 +232,41 @@ Sequence* getMin(Sequence *head) {
 }
 
 int main() {
-    makeSuccessor_test();
-    int i, n; //è›‹ç³•å±¤æ•¸
+    int i, n; // ÃP¿|¼h¼Æ
     scanf("%d", &n);
-    int *cake;//è›‹ç³•
-    cake = (int *)malloc(n * sizeof(int));
+    Sequence *head = new Sequence();
 
-    for (i = 0; i < n; i++) { //è¼¸å…¥è›‹ç³•
+    for (i = 0; i < n; i++) { // ¿é¤JÃP»æ
         int in;
         scanf("%d", &in);
-        cake[i] = in;
+        head->w_number(i, in);
     }
 
-    int gapNum;//h
-    gapNum = gapNumber(cake, n);
+    head->w_hScore(gapNumber(head->number, n));
+    head->w_gScore(0);
+    head->w_fScore();
+    head->w_action(0);
 
-    free(cake);
+    while (!isGoal(head->number, n)) {
+        head->setLeftNode(NULL);
+        head->setRightNode(NULL);
+        for (i = 2; i <= n; i++) {
+            if (i == head->getAction()) continue;
+            Sequence *result = makeSuccessor(head, i, n);
+            // §â©Ò¦³Node´¡¤JHeap¤¤
+            insertheapSort(head, result);
+        }
+        // Àò±oMin Node¬°¸ÓRoundªº³Ì¨Î°Ê§@
+        Sequence *result = getMin(head);
+        printf("(%d)", result->getAction());
+        for (int k = 0; k < n; k++)
+            printf(" %d", result->useNumber(k));
+        printf("\n");
+        head = result;
+        // §âh score³]¦¨«Ü¤jªº­È¤~¤£·|Ä~Äò·íMin Node
+        head->w_hScore(9999);
+        head->w_fScore();
+    }
+
     return 0;
 }
