@@ -7,6 +7,7 @@ using namespace std;
 class Sequence {
 public:
     int *number;
+    int index;
     Sequence() : gScore(0), hScore(0), fScore(0) {
         number = new int[16];
         this->leftNode = NULL;
@@ -212,7 +213,9 @@ void insertheapSort(Sequence *head, Sequence *current) {
 }
 
 void removeMin(Sequence *head, Sequence *target) {
-    if (head->getLeftNode() == target) {
+    if (target == head) {
+        head = head->getRightNode();
+    } else if (head->getLeftNode() == target) {
         if (head->getLeftNode()->getRightNode() == NULL) {
             head->setLeftNode(NULL);
         } else {
@@ -231,6 +234,24 @@ Sequence* getMin(Sequence *head) {
     getMin(head->getLeftNode());
 }
 
+void printAction(Sequence* s, int n) {
+    printf("(%d)", s->getAction());
+
+    for (int k = 0; k < n; k++)
+        printf(" %d", s->useNumber(k));
+
+    printf("\n");
+}
+
+void printSeq(Sequence* s, int n) {
+    printf("[%d", s->number[0]);
+    for (int k = 1; k < n; k++)
+        printf(" %d", s->number[k]);
+    printf("] g: %d, h: %d, f: %d, a: %d, i: %d\n",
+           s->getgScore(), s->gethScore(),
+           s->getfScore(), s->getAction(), s->index);
+}
+
 int main() {
     int i, n; // 鬆糕層數
     scanf("%d", &n);
@@ -246,23 +267,58 @@ int main() {
     head->w_gScore(0);
     head->w_fScore();
     head->w_action(0);
+    head->index = 1;
+    head->setLeftNode(NULL);
+    head->setRightNode(NULL);
 
     while (!isGoal(head->number, n)) {
         head->setLeftNode(NULL);
         head->setRightNode(NULL);
+
         for (i = 2; i <= n; i++) {
             if (i == head->getAction()) continue;
+
             Sequence *result = makeSuccessor(head, i, n);
-            // 把所有Node插入Heap中
+            result->index = i;
+//            把所有Node插入Heap中
+            if (result->getgScore() == 8)
+                printSeq(result, n);
             insertheapSort(head, result);
-        }
+        } printf("\n");
+
         // 獲得Min Node為該Round的最佳動作
         Sequence *result = getMin(head);
-        printf("(%d)", result->getAction());
-        for (int k = 0; k < n; k++)
-            printf(" %d", result->useNumber(k));
-        printf("\n");
+        removeMin(head, result);
+        Sequence *nextResult = getMin(head);
+        removeMin(head, nextResult);
+
+        // What the hell is this priority queue QQQQQQQQQ
+        while (result->getfScore() == nextResult->getfScore() && result != nextResult) {
+            int flag = 1;
+            if (result->getgScore() == 8)
+                printSeq(result, n), printSeq(nextResult, n);
+            if (result->number[0] > nextResult->number[0]) {
+                printf("STATE!!\n");
+                flag = 0;
+            } else if (result->getAction() > nextResult->getAction()) {
+                printf("ACTION!!\n");
+                flag = 0;
+            } else if (result->index > nextResult->index) {
+                printf("INDEX!!\n");
+                flag = 0;
+            }
+
+            if (flag) result = nextResult;
+            Sequence *nextnextResult = getMin(head);
+            removeMin(head, nextnextResult);
+            if (nextResult == nextnextResult) break;
+            nextResult = nextnextResult;
+//            system("pause");
+        }
+
+        printAction(result, n);
         head = result;
+
         // 把h score設成很大的值才不會繼續當Min Node
         head->w_hScore(9999);
         head->w_fScore();
