@@ -198,12 +198,19 @@ void insertheapSort(Sequence *head, Sequence *current) {
 
                 break;
             } else if (i == 15) {
-                if (head->getRightNode() == NULL) {
-                    head->setRightNode(current);
+                if (head->getAction() < current->getAction()) {
+                    if (head->getRightNode() == NULL) {
+                        head->setRightNode(current);
+                    } else {
+                        insertheapSort(head->getRightNode(), current);
+                    }
                 } else {
-                    insertheapSort(head->getRightNode(), current);
+                    if (head->getLeftNode() == NULL) {
+                        head->setLeftNode(current);
+                    } else {
+                        insertheapSort(head->getLeftNode(), current);
+                    }
                 }
-
                 break;
             }
 
@@ -280,41 +287,15 @@ int main() {
 
             Sequence *result = makeSuccessor(head, i, n);
             result->index = i;
-//            把所有Node插入Heap中
-            if (result->getgScore() == 8)
+            // 把所有Node插入Heap中
+            if (result->getgScore() == 5)
                 printSeq(result, n);
             insertheapSort(head, result);
-        } printf("\n");
+        }
 
         // 獲得Min Node為該Round的最佳動作
         Sequence *result = getMin(head);
         removeMin(head, result);
-        Sequence *nextResult = getMin(head);
-        removeMin(head, nextResult);
-
-        // What the hell is this priority queue QQQQQQQQQ
-        while (result->getfScore() == nextResult->getfScore() && result != nextResult) {
-            int flag = 1;
-            if (result->getgScore() == 8)
-                printSeq(result, n), printSeq(nextResult, n);
-            if (result->number[0] > nextResult->number[0]) {
-                printf("STATE!!\n");
-                flag = 0;
-            } else if (result->getAction() > nextResult->getAction()) {
-                printf("ACTION!!\n");
-                flag = 0;
-            } else if (result->index > nextResult->index) {
-                printf("INDEX!!\n");
-                flag = 0;
-            }
-
-            if (flag) result = nextResult;
-            Sequence *nextnextResult = getMin(head);
-            removeMin(head, nextnextResult);
-            if (nextResult == nextnextResult) break;
-            nextResult = nextnextResult;
-//            system("pause");
-        }
 
         printAction(result, n);
         head = result;
